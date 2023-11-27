@@ -1,0 +1,61 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+struct Query{
+    char op;
+    int i, len;
+    vector<int> v;
+    Query(){}
+    Query(char _op, int _i, vector<int>::iterator _s, vector<int>::iterator _e): op(_op), i(_i) {
+        for (auto iter = _s;iter!=_e;iter++) v.push_back(*iter);
+        len = v.size();
+    }
+    void convert(){
+        if (op=='+') op = '-';
+        else op = '+';
+    }
+};
+vector<Query> Q1, Q2;
+vector<int> a, b, _all, _all_1[101];
+int K, M, A, B;
+
+void _add(vector<int> &C, int idx, vector<int> &D, vector<Query> &Q){
+    Q.emplace_back('+', idx, D.begin(), D.end());
+    C.insert(C.begin()+idx, D.begin(), D.end());
+}
+
+void _delete(vector<int> &C, int idx, int num, vector<Query> &Q){
+    Q.emplace_back('-', idx, C.begin()+idx, C.begin()+idx+num);
+    C.erase(C.begin()+idx, C.begin()+idx+num);
+}
+
+void solve1(vector<int> &C, vector<Query> &Q){
+    for (int i=(int)C.size()-1;i>=0;i--){
+        int x = C[i];
+
+        if (x>K/2){
+            _add(C, i, _all_1[x], Q);
+            if (x<K){
+                _delete_suffix(C, i+x-1, x+1, Q);
+                _add_suffix(C, i+x, x+1, Q);
+            }
+            _delete(C, i, K, Q);
+        }
+        else{
+            _add(C, i+1, _all_1[x], Q);
+            if (x>1){
+                _delete_prefix(C, i+1, x-1, Q);
+                _add_prefix(C, i, x-1, Q);
+            }
+            _delete(C, i, K, Q);
+        }
+
+    }
+}
+
+void solve2(vector<int> &C, vector<Query> &Q){
+    while(true){
+        bool flag = 0;
+        for (int i=0;i+K<=(int)C.size();i++){
+            bool flag2 = 1;
+            for (int j=1;j<=K;j++) if (C[i+j-1
