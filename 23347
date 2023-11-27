@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 
+typedef long long ll;
 using namespace std;
 struct Query{
     char op;
@@ -27,6 +28,30 @@ void _add(vector<int> &C, int idx, vector<int> &D, vector<Query> &Q){
 void _delete(vector<int> &C, int idx, int num, vector<Query> &Q){
     Q.emplace_back('-', idx, C.begin()+idx, C.begin()+idx+num);
     C.erase(C.begin()+idx, C.begin()+idx+num);
+}
+
+void _delete_suffix(vector<int> &C, int idx, int num, vector<Query> &Q){
+    _add(C, idx, _all_1[num], Q);
+    if (num<K) _delete_suffix(C, idx+num-1, num+1, Q);
+    _delete(C, idx, K, Q);
+}
+
+void _add_suffix(vector<int> &C, int idx, int num, vector<Query> &Q){
+    _add(C, idx, _all, Q);
+    if (num<K) _add_suffix(C, idx+num-1, num+1, Q);
+    _delete(C, idx, K-1, Q);
+}
+
+void _delete_prefix(vector<int> &C, int idx, int num, vector<Query> &Q){
+    _add(C, idx+num, _all_1[num], Q);
+    if (num>1) _delete_prefix(C, idx+num, num-1, Q);
+    _delete(C, idx, K, Q);
+}
+
+void _add_prefix(vector<int> &C, int idx, int num, vector<Query> &Q){
+    _add(C, idx, _all, Q);
+    if (num>1) _add_prefix(C, idx+num, num-1, Q);
+    _delete(C, idx+num, K-1, Q);
 }
 
 void solve1(vector<int> &C, vector<Query> &Q){
@@ -58,4 +83,63 @@ void solve2(vector<int> &C, vector<Query> &Q){
         bool flag = 0;
         for (int i=0;i+K<=(int)C.size();i++){
             bool flag2 = 1;
-            for (int j=1;j<=K;j++) if (C[i+j-1
+            for (int j=1;j<=K;j++) if (C[i+j-1]!=j) {flag2 = 0; break;}
+            if (flag2){
+                flag = 1;
+                _delete(C, i, K, Q);
+                break;
+            }
+        }
+        if (!flag) break;
+    }
+}
+
+void output(){
+    reverse(Q2.begin(), Q2.end());
+    for (auto &q:Q2) q.convert();
+
+    printf("YES\n%d\n", (int)Q1.size()+(int)Q2.size());
+    for (auto &q:Q1){
+        printf("%c %d %d ", q.op, q.i, q.len);
+        if (q.op=='+'){
+            for (auto &x:q.v) printf("%d ", x);
+        }
+        printf("\n");
+    }
+    //printf("------------------------------------------\n");
+    for (auto &q:Q2){
+        printf("%c %d %d ", q.op, q.i, q.len);
+        if (q.op=='+'){
+            for (auto &x:q.v) printf("%d ", x);
+        }
+        printf("\n");
+    }
+}
+
+int main(){
+    scanf("%d %d", &K, &M);
+    scanf("%d", &A);
+    a.resize(A);
+    for (int i=0;i<A;i++) scanf("%d", &a[i]);
+    scanf("%d", &B);
+    b.resize(B);
+    for (int i=0;i<B;i++) scanf("%d", &b[i]);
+
+    for (int i=1;i<=K;i++){
+        _all.push_back(i);
+        for (int j=1;j<=K;j++) if (i!=j) _all_1[j].push_back(i);
+    }
+
+    if (K<M){
+        if (a==b) printf("YES\n0\n");
+        else printf("NO\n");
+        return 0;
+    }
+    else if (K>M){solve1(a, Q1);solve1(b, Q2);}
+    else {
+        solve2(a, Q1); solve2(b, Q2);
+        if (a!=b) {printf("NO\n"); return 0;}
+    }
+    output();
+    return 0;
+}
